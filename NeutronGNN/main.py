@@ -57,7 +57,8 @@ def run(args):
     
     # .... config
     config = Config(args.model, args.nfiles, args.epochs, args.lr, args.batch)
-    trainDL, valDL, testDL = get_loaders(config.data_path, config.train_indices_file, config.val_indices_file, config.test_indices_file, config.batch_size,                                                           config.num_data_workers, k_neighbours=args.k, fully_connected=args.fc, dynamic=args.dyn, distance_weighted=args.dw)
+    trainDL, valDL, testDL = get_loaders(config.data_path, config.train_indices_file, config.val_indices_file, config.test_indices_file, config.batch_size, 
+                                         config.num_data_workers, k_neighbours=args.k, fully_connected=args.fc, dynamic=args.dyn, distance_weighted=args.dw)
                 
     # .... model, train and test
     model_type = GCN()  # initialize model type
