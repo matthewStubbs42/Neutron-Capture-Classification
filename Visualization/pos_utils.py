@@ -3,7 +3,7 @@ import numpy as np
 row_remap=np.flip(np.arange(16))
 
 """
-mapping PMT index to geometric location.
+mapping PMT index to geometric location
 copied from John Walker: https://github.com/WatChMaL/NeutronGNN/blob/master/root_utils/pos_utils.py
 """
 
