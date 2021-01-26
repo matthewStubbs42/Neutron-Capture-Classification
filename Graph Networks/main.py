@@ -26,7 +26,7 @@ def main():
     parser.add_argument('--model', type=str, default='GCN',
                 help='network model (GCN, AGNN, SG or GAT)')
     parser.add_argument('--nfiles', type=str, default='6',
-                help='number of files (6, 50 or ALL)')
+                help='number of files (6, 50 or ALL from n/e dataset, or choose dn (dark noise dataset))')
     parser.add_argument('--epochs', type=int, default=5,
                 help='number of training epochs')
     parser.add_argument('--lr', type=float, default=0.01,
