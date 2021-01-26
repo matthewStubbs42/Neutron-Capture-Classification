@@ -6,14 +6,21 @@ import torch
 import torch.nn as nn
 import numpy as np
 from sklearn.metrics import confusion_matrix
+from sklearn.metrics import mean_squared_error
+from sklearn.metrics import accuracy_score
+from sklearn.metrics import roc_auc_score
+import lightgbm as lgb
+import xgboost as xgb
+import plotting_tools as ptool
+import matplotlib.pyplot as plt
 
 #...................................................................................................#
-                                       # TRAINING
+                                       # TRAINING MLP
 #...................................................................................................#
 
 import copy
 
-def train_features(model, iteration_display, log_number, val_number, train_loader, val_loader, num_epochs, learning_rate, dump_path, lr_decay):
+def train_MLP(model, iteration_display, log_number, val_number, train_loader, val_loader, num_epochs, learning_rate, dump_path, lr_decay):
     
     #.........................................................................#
     train_log = CSVData(dump_path, "log_train.csv")
@@ -118,13 +125,57 @@ def train_features(model, iteration_display, log_number, val_number, train_loade
     
     return model
 
+
 #...................................................................................................#
+                                       # TRAINING XGB
 #...................................................................................................#
-                                        # TESTING
+def Test_XGB(dump_path, dtest, dtrain, dval, evals_result):
+    loaded_bst = xgb.Booster()
+    loaded_bst.load_model(dump_path + "/best.model")
+    
+    y_pred_test = loaded_bst.predict(dtest)
+    y_pred_eval = loaded_bst.predict(dtrain)
+    
+    y_pred_train = loaded_bst.predict(dtrain)
+    y_pred_val = loaded_bst.predict(dval)
+    y_pred_test = loaded_bst.predict(dtest)
+
+    predictions_train = [round(value) for value in y_pred_train]
+    predictions_val = [round(value) for value in y_pred_val]
+    predictions_test = [round(value) for value in y_pred_test]
+
+    accuracy_train = accuracy_score(dtrain.get_label(), predictions_train) * 100
+    accuracy_val = accuracy_score(dval.get_label(), predictions_val) * 100
+    accuracy_test = accuracy_score(dtest.get_label(), predictions_test) * 100
+
+    rmse_train, rmse_test = mean_squared_error(dtrain.get_label(), y_pred_train) ** 0.5, mean_squared_error(dtest.get_label(), y_pred_test) ** 0.5
+    rmse_val = mean_squared_error(dval.get_label(), y_pred_val) ** 0.5
+    
+    roc_train, roc_val = roc_auc_score(dtrain.get_label(), y_pred_train), roc_auc_score(dval.get_label(), y_pred_val)
+    roc_test = roc_auc_score(dtest.get_label(), y_pred_test)
+    
+    tests = [accuracy_train, accuracy_val, accuracy_test, rmse_train, rmse_val, rmse_test, roc_train, roc_val, roc_test]
+    testing_labels = ['training accuracy', 'dev accuracy', 'test accuracy', 'train rmse', 'val rmse', 'test rmse', 'train roc', 'dev roc', 'test roc']
+
+    with open(dump_path + '/metrics.txt', 'w') as writer:
+        writer.write('XGB metrics...\n' + '-'*10 + '\n')
+        for i in range(len(tests)):
+            writer.write(testing_labels[i] + ": " + str(tests[i]) + "\n")
+    
+    ptool.my_plot_importance(loaded_bst, figsize = (7, 7), title='XGB Feature importance', path=dump_path)
+    class_labels = ('neutron', 'electron')
+    ax = lgb.plot_metric(evals_result, metric='logloss', figsize = (12,12))
+    ax.legend(); plt.ylabel('logloss classification error'); plt.title('XGBoost Log Loss')
+    plt.savefig(dump_path + '/log loss classification error', bbox_inches='tight')
+    ptool.plot_confusion_matrix(dump_path=dump_path+"/", classes=class_labels, model="XGB", pred=predictions_test, labels=dtest.get_label())
+    
+    return 
+    
 #...................................................................................................#
+                                       # Testing MLP
 #...................................................................................................#
 
-def Test(model, test_loader, dump_path):
+def Test_MLP(model, test_loader, dump_path):
     model = model
     model.load_state_dict(torch.load(dump_path + '/state_dict'))
     model.eval() # prep model for *evaluation*
@@ -173,6 +224,14 @@ def Test(model, test_loader, dump_path):
         cm = confusion_matrix(y_true, y_pred)
         print(cm)
         
+#         tests = [accuracy_train, accuracy_val, accuracy_test, rmse_train, rmse_val, rmse_test, roc_train, roc_val, roc_test]
+#         testing_labels = ['training accuracy', 'dev accuracy', 'test accuracy', 'train rmse', 'val rmse', 'test rmse', 'train roc', 'dev roc', 'test roc']
+
+#         with open(dump_path + '/metrics.txt', 'w') as writer:
+#             writer.write('XGB metrics...\n' + '-'*10 + '\n')
+#             for i in range(len(tests)):
+#                 writer.write(testing_labels[i] + ": " + str(tests[i]) + "\n")
+
         #.........................................................................#
                              # save testing data
         
