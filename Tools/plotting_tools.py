@@ -7,15 +7,19 @@ from sklearn.metrics import roc_curve, auc
 import matplotlib
 matplotlib.use('AGG')
 import matplotlib.pyplot as plt
+from xgboost import plot_importance
 
 ##......................................................................................................##
 #                                         Confusion Matrix                                               #
 ##......................................................................................................##
 
-def plot_confusion_matrix(dump_path, classes, model, gnn=False, fc=False, dw=False, k=False, normalize=True, cmap=plt.cm.Blues):
+def plot_confusion_matrix(dump_path, classes, model, gnn=False, fc=False, dw=False, k=False, normalize=True, pred=None, labels=None, cmap=plt.cm.Blues):
     
-    y_true = np.genfromtxt(dump_path + 'y_true.csv', delimiter=",")
-    y_pred = np.genfromtxt(dump_path + 'y_pred.csv', delimiter=",")
+    if model != "XGB":
+        y_true = np.genfromtxt(dump_path + 'y_true.csv', delimiter=",")
+        y_pred = np.genfromtxt(dump_path + 'y_pred.csv', delimiter=",")
+    else:
+        y_pred, y_true = pred, labels
     cm = confusion_matrix(y_true, y_pred)
     
     if normalize:
@@ -176,3 +180,11 @@ def ROC(location, model, gnn=False, fc=False, dw=False, k=False, title=None):
     plt.savefig(location + "ROC_curve.png", bbox_inches = 'tight')
 
     
+##......................................................................................................##
+#                                     XGBoost feature importance plot                                    #
+##......................................................................................................##
+def my_plot_importance(booster, figsize, title, path, **kwargs): 
+    fig, ax = plt.subplots(1,1,figsize=figsize)
+    myplt = plot_importance(booster=booster, ax=ax, title=title, max_num_features = 15, **kwargs)
+    plt.savefig(path + '/xgb feature importance.png', bbox_inches='tight')
+    return 

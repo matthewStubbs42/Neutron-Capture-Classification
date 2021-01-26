@@ -11,17 +11,24 @@ from torch_geometric.nn import global_max_pool, global_add_pool, global_mean_poo
 #..........................................................................................#
 
 class GCN(torch.nn.Module):
-    def __init__(self, w1=64, w2=12):
+    def __init__(self, w1=32, w2=16, w3=10):
         super(GCN, self).__init__()
         self.conv1 = GCNConv(8, w1, cached=False)
         self.conv2 = GCNConv(w1, w2, cached=False)
-        self.linear = Linear(w2, 2)
+        self.conv3 = GCNConv(w2, w3)
+        
+        self.pool1 = HGPSLPool(self.nhid, self.pooling_ratio, self.sample, self.sparse, self.sl, self.lamb)
+        self.pool2 = HGPSLPool(self.nhid, self.pooling_ratio, self.sample, self.sparse, self.sl, self.lamb)
+
+        
+        self.linear = Linear(w3, 2)
 
     def forward(self, batch):
             x, edge_index, batch_index = batch.x, batch.edge_index, batch.batch
             x = F.relu(self.conv1(x, edge_index))
+            x = glob
             x = F.relu(self.conv2(x, edge_index))
-            x = global_max_pool(x, batch_index)
+            x = global_mean_pool(x, batch_index)
             x = self.linear(x)
             return F.log_softmax(x, dim=1)
         
@@ -54,8 +61,6 @@ class AGNN(torch.nn.Module):
 # Wu, F., Zhang, T., Souza Jr, A. H. D., Fifty, C., Yu, T., & Weinberger, K. Q. (2019).
 # arXiv:1902.07153.
 #...................................SGConv................................................#
-
-
 
 class SG(torch.nn.Module):
     def __init__(self, w1=16, w2=64, w3=64, w4 = 10):
@@ -106,21 +111,28 @@ class GAT(torch.nn.Module):
 class MLP(torch.nn.Module):
     
     #Define the network layers here
-    def __init__(self, num_classes=2):
+    def __init__(self, num_classes=2, c1=False):
         
         # Initialize the superclass
         super(MLP, self).__init__()
         
+        if c1:
+            n_inputs=7
+        
+        else:
+            n_inputs=14
+        
+        self.inputs = n_inputs
         # Activation functions
         self.relu = nn.ReLU()
         self.softmax = nn.Softmax(dim=1)
         
         # Fully-connected layers
-        self.fc1 = nn.Linear(12, 36)
-        self.fc2 = nn.Linear(36, 64)
-        self.fc3 = nn.Linear(64, 64)
-        self.fc4 = nn.Linear(64, 24)
-        self.fc5 = nn.Linear(24, 10)
+        self.fc1 = nn.Linear(n_inputs, 36)
+        self.fc2 = nn.Linear(36, 128)
+        self.fc3 = nn.Linear(128, 80)
+        self.fc4 = nn.Linear(80, 50)
+        self.fc5 = nn.Linear(50, 10)
         self.fc6 = nn.Linear(10, num_classes)
         
     def forward(self, x):  # Forward pass

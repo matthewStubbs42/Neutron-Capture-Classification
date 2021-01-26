@@ -8,11 +8,20 @@ class Config:
     def __init__(self, model_name, nfiles, epochs, lr, batch_size, device="cuda", gpu_list=[0], num_workers=0):
         
         ##......................................................................................................##
-        h5_filepath = "/home/mattStubbs/watchmal/NeutronGNN/data/h5_files/iwcd_mpmt_shorttank_neutrongnn_" + nfiles + ".h5"
-        train_indices_file = "/home/mattStubbs/watchmal/NeutronGNN/data/splits/train_indicies_" + nfiles + ".txt"
-        val_indices_file = "/home/mattStubbs/watchmal/NeutronGNN/data/splits/validation_indicies_" + nfiles + ".txt"
-        test_indices_file = "/home/mattStubbs/watchmal/NeutronGNN/data/splits/test_indicies_" + nfiles + ".txt"
-        dump_path = "/home/mattStubbs/watchmal/NeutronGNN/data/dump/" + model_name + "/" + nfiles + "/" + str(datetime.datetime.now())[:-7]
+        if nfiles != "dn":
+            h5_filepath = "/home/mattStubbs/watchmal/NeutronGNN/data/h5_files/iwcd_mpmt_shorttank_neutrongnn_" + nfiles + ".h5"
+            train_indices_file = "/home/mattStubbs/watchmal/NeutronGNN/data/splits/train_indicies_" + nfiles + ".txt"
+            val_indices_file = "/home/mattStubbs/watchmal/NeutronGNN/data/splits/validation_indicies_" + nfiles + ".txt"
+            test_indices_file = "/home/mattStubbs/watchmal/NeutronGNN/data/splits/test_indicies_" + nfiles + ".txt"
+            dump_path = "/home/mattStubbs/watchmal/NeutronGNN/data/dump/" + model_name + "/" + nfiles + "/" + str(datetime.datetime.now())[:-7]
+        
+        else:
+            h5_filepath = "/home/mattStubbs/watchmal/NeutronGNN/data/h5_files/iwcd_mpmt_shorttank_neutrongnn_trainval_dn.h5"
+            train_indices_file = "/home/mattStubbs/watchmal/NeutronGNN/data/splits/train_indicies_dn_ALL.txt"
+            val_indices_file = "/home/mattStubbs/watchmal/NeutronGNN/data/splits/validation_indicies_dn_ALL.txt"
+            test_indices_file = "/home/mattStubbs/watchmal/NeutronGNN/data/splits/test_indicies_dn_ALL.txt"
+            dump_path = "/home/mattStubbs/watchmal/NeutronGNN/data/dump/" + model_name + "/" + nfiles + "/" + str(datetime.datetime.now())[:-7]
+            
         ##......................................................................................................##
         
         self.data_path = h5_filepath
